@@ -39,22 +39,21 @@ def mod_crop(image, scale):
 
 class DatasetFactory(object):
 
-    def create_dataset(self, name, roots, scale=3):
-        train_root, test_root = roots
+    def create_dataset(self, name, root, scale=3):
         if name == 'VDCNN':
-            return VDCNN_dataset(train_root), VDCNN_dataset(test_root)
+            return VDCNN_dataset(root)
         elif name == 'VSRCNN':
-            return VSRCNN_dataset(train_root), VSRCNN_dataset(test_root)
+            return VSRCNN_dataset(root)
         elif name == 'ESPCN':
-            return ESPCN_dataset(train_root), ESPCN_dataset(test_root)
+            return ESPCN_dataset(root)
         elif name == 'VRES':
-            return VRES_dataset(train_root), VRES_dataset(test_root)
+            return VRES_dataset(root)
         elif name == 'VDSR':
-            return VDSR_dataset(train_root), VDSR_dataset(test_root)
+            return VDSR_dataset(root)
         elif name == 'VRNET':
-            return VRNET_dataset(train_root), VRNET_dataset(test_root)
+            return VRNET_dataset(root)
         elif name == 'MFCNN':
-            return MFCNN_dataset(train_root), MFCNN_dataset(test_root)
+            return MFCNN_dataset(root)
 
 class SRCNN_dataset(Dataset):
     def __init__(self, root, scale=3, loader=_gray_loader):

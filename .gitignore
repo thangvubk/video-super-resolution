@@ -5,3 +5,5 @@ data/
 Results/
 *.m~
 *.ipynb
+check_point/
+results/

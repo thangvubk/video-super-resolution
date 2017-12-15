@@ -30,12 +30,13 @@ class Solver(object):
     For statistics, 'loss' history, 'avr_train_psnr' history, and 'avr_val_psnr' history
     are also saved. 
     """
-    def __init__(self, model, **kwargs):
+    def __init__(self, model, check_point, **kwargs):
         """
         Construct a new Solver instance
 
         Required arguments
-        - model: a torch nn module describe the neural network architecture 
+        - model: a torch nn module describe the neural network architecture
+        - check_point: save trained model for testing for finetuning
 
         Optional arguments:
         - num_epochs: number of epochs to run during training
@@ -48,6 +49,7 @@ class Solver(object):
         - print_every: period of statistics printing
         """
         self.model = model
+        self.check_point = check_point
         self.num_epochs = kwargs.pop('num_epochs', 10)
         self.batch_size = kwargs.pop('batch_size', 128)
         self.learning_rate = kwargs.pop('learning_rate', 1e-4)
@@ -111,8 +113,6 @@ class Solver(object):
         if self.verbose:
             print('Epoch  %5d, loss %.5f' \
                         %(epoch, running_loss/num_batchs))
-            
-
 
     def _wrap_variable(self, input_batch, label_batch, use_gpu):
         if use_gpu:
@@ -133,7 +133,6 @@ class Solver(object):
         psnr =  torch.sum(psnr)
         return psnr
 
-                
     def _check_PSNR(self, dataset, is_test=False):
         """
         Get the output of model with the input being 'dataset' then 
@@ -188,7 +187,6 @@ class Solver(object):
         avr_psnr /= epoch_size
 
         return avr_psnr, psnrs, outputs
-
      
     def train(self, train_dataset):
         """
@@ -201,13 +199,14 @@ class Solver(object):
         """
 
         # check fine_tuning option
-        model_name = os.path.join('check_point', self.model.name+'.pt')
-        if self.fine_tune and os.path.exists(model_name):
+        model_path = os.path.join(self.check_point + 'model.pt')
+        if self.fine_tune and not os.path.exists(model_path):
+            raise Exception('Cannot find %s.' %model_path)
+        elif self.fine_tune and os.path.exists(model_path):
             if self.verbose:
-                print('Loading %s for finetuning.' %model_name)
-            self.model = torch.load(model_name)
+                print('Loading %s for finetuning.' %model_path)
+            self.model = torch.load(model_path)
             self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
-       
         
         # capture best model
         best_val_psnr = -1
@@ -229,22 +228,22 @@ class Solver(object):
                 print('Average train PSNR %.3fdB' %train_psnr)
                 print('')
             
-            
         # write the model to hard-disk for testing
-        torch.save(self.model, model_name)
+        if not os.path.exists(self.check_point):
+            os.makedirs(self.check_point)
+        model_path = os.path.join(self.check_point, 'model.pt')
+        torch.save(self.model, model_path)
 
     def test(self, dataset):
         """
         Load the model stored in train_model.pt from training phase,
         then return the average PNSR on test samples. 
         """
-        # TODO process psnrs
-        model_name = os.path.join('check_point', self.model.name+'.pt')
-        if not os.path.exists(model_name):
-            raise Exception('Cannot find %s.\
-                             Please train the network first' %model_name)
+        model_path = os.path.join(self.check_point, 'model.pt')
+        if not os.path.exists(model_path):
+            raise Exception('Cannot find %s.' %model_path)
         
-        self.model = torch.load(model_name)
+        self.model = torch.load(model_path)
         _, psnrs, outputs = self._check_PSNR(dataset, is_test=True)
         return psnrs, outputs
             
