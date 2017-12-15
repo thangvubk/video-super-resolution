@@ -2,7 +2,7 @@ clear; close all;
 
 %% Configuration 
 % NOTE: you can modify this part
-read_path = 'train';
+train_set = 'train';
 scale = 3;
 use_upscale_interpolation = true;
 hr_size = 48;
@@ -10,19 +10,22 @@ stride = 24;
 
 %% Create save path for high resolution and low resolution images based on config
 % NOTE: you should NOT modify the following parts
+disp(sprintf('%10s: %s', 'Train set', train_set));
+disp(sprintf('%10s: %d', 'Scale', scale));
 
 scale_dir = strcat(int2str(scale), 'x');
-if use_upscale_interpolation
-    interpolation_dir = 'interpolation';
-else
-    interpolation_dir = 'noninterpolation';
+
+% example: 
+% read_path = '../data/train'
+% save_path = '../preprocessed_data_video/train/3x/'
+read_path = fullfile('../data', train_set) 
+save_path = fullfile('../preprocessed_data', train_set, scale_dir);
+
+if exist(save_path, 'dir') ~= 7
+	mkdir(save_path)
 end
 
-% example: hr_save_path = 'preprocessed_data_video/train/noninterpolation/3x/'
-save_path = fullfile('preprocessed_data_video', read_path, interpolation_dir, scale_dir);
-
-mkdir(save_path)
-
+% count variable to order the data
 base_count = 0;
 count = 0;
 
@@ -33,10 +36,10 @@ dirs = dir(read_path);
 for i_dir = 1 : length(dirs)
     is_switch_dir = true;
     scene_dir = dirs(i_dir).name;
-    if strcmp(scene_dir, '.') || strcmp(scene_dir, '..')
+    if scene_dir(1) ~= 's' %valid folder begin with 's'
         continue
     end
-    disp(scene_dir);
+    disp(sprintf('processing dir: %s', scene_dir));
     
     filepaths = dir(fullfile(read_path, scene_dir, '*.bmp'));
     
@@ -107,14 +110,3 @@ for batchno = 1:floor((base_count + count)/chunksz)
 end
 h5disp(fullfile(save_path, 'dataset.h5'));
 
-
-%% Utility function (supported in matlab 2016Rb or newer :D)
-% NOTE: if your matlab version is lower than 2016Rb please copy modcrop
-% 	to other .m file
-
-function img = modcrop(img, scale)
-% The img size should be divided by scale, to align interpolation
-    sz = size(img);
-    sz = sz - mod(sz, scale);
-    img = img(1:sz(1), 1:sz(2));
-end

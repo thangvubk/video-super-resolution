@@ -1,9 +1,7 @@
 *.pyc
 .ipynb_checkpoints
-preprocessed_data_video
-Results
-test
-train
+preprocessed_data/
+data/
+Results/
 *.m~
-check_point
 *.ipynb

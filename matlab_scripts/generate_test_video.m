@@ -2,39 +2,41 @@ clear; close all;
 
 %% Configurationi
 % NOTE: you can modify this part
-read_path = 'test';
+test_set = 'myanmar';
 scale = 3;
 width = 960;
 height = 540;
-use_upscale_interpolation = true;
-
 
 %% Create save path for high resolution and low resolution images based on config
 % NOTE: you should NOT modify the following parts
+disp(sprintf('%10s: %s', 'Test set', test_set));
+disp(sprintf('%10s: %d', 'Scale', scale));
 
 scale_dir = strcat(int2str(scale), 'x');
 
-if use_upscale_interpolation
-    interpolation_dir = 'interpolation';
-else
-    interpolation_dir = 'noninterpolation';
-end
+% example
+% read_path = '../data/test/myanmar/'
+% save_path = '../preprocessed_data//test/myanmar/3x/'
+read_path = fullfile('../data', 'test', test_set);
+save_path = fullfile('../preprocessed_data', 'test', test_set, scale_dir);
 
-% example: hr_save_path = 'data/interpolation/test/3x/high_res'
-save_path = fullfile('preprocessed_data_video', read_path, interpolation_dir, scale_dir);
+if exist(save_path, 'dir') ~= 7
+	mkdir(save_path)
+end
 
 data = zeros(height, width, 5, 1);
 label = zeros(height, width, 5, 1);
 
+% get folder in read_path
 dirs = dir(read_path);
 
 count = 0;
-
 for i_dir = 1 : length(dirs)
     scene_dir = dirs(i_dir).name;
-    if strcmp(scene_dir, '.') || strcmp(scene_dir, '..')
+	if scene_dir(1) ~= 's' %valid folder begin with 's'
         continue
     end
+
     count = count + 1;
     
     filepaths = dir(fullfile(read_path, scene_dir, '*.bmp'));
@@ -49,10 +51,7 @@ for i_dir = 1 : length(dirs)
         hr_im = modcrop(hr_im, scale);
         [hei, wid] = size(hr_im);
         lr_im = imresize(hr_im,1/scale,'bicubic');
-
-        if use_upscale_interpolation
-            lr_im = imresize(lr_im ,[hei, wid],'bicubic');
-        end
+        lr_im = imresize(lr_im ,[hei, wid],'bicubic');
         
         data(:, :, i, count) = lr_im;
         label(:, :, i, count) = hr_im;
@@ -75,16 +74,4 @@ for batchno = 1:floor((count)/chunksz)
     totalct = curr_dat_sz(end);
 end
 h5disp(fullfile(save_path, 'dataset.h5'));
-
-%% Utility function (supported in matlab 2016Rb or newer :D)
-% NOTE: if your matlab version is lower than 2016Rb please copy modcrop
-% to other .m file
-
-function img = modcrop(img, scale)
-% The img size should be divided by scale, to align interpolation
-    sz = size(img);
-    sz = sz - mod(sz, scale);
-    img = img(1:sz(1), 1:sz(2));
-end
-
 
