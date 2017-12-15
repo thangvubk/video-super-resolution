@@ -52,11 +52,6 @@ def display_config():
 def main():
     display_config()
 
-    if args.model == 'VSRCNN' or 'VDCNN' or 'VRES':
-        is_using_interp = True
-    else:
-        is_using_interp = False
-
     dataset_root = get_full_path(args.scale, args.train_set)
 
     print('Contructing dataset...')
