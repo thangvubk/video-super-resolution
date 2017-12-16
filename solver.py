@@ -225,7 +225,7 @@ class Solver(object):
             self.hist_train_psnr.append(train_psnr)
             
             if self.verbose:
-                print('Average train PSNR %.3fdB' %train_psnr)
+                print('%s Average train PSNR %.3fdB' %(self.model.name, train_psnr))
                 print('')
             
         # write the model to hard-disk for testing
