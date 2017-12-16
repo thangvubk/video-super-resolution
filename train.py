@@ -4,7 +4,6 @@ import os
 from SR_datasets import DatasetFactory
 from model import ModelFactory
 from solver import Solver
-from exporter import Exporter
 description='Video Super Resolution pytorch implementation'
 
 parser = argparse.ArgumentParser(description=description)
@@ -15,9 +14,9 @@ parser.add_argument('-c', '--scale', metavar='S', type=int, default=3,
                     help='interpolation scale')
 parser.add_argument('--train-set', metavar='T', type=str, default='train',
                     help='data set for training')
-parser.add_argument('-b', '--batch-size', metavar='B', type=int, default=32,
+parser.add_argument('-b', '--batch-size', metavar='B', type=int, default=100,
                     help='batch size used for training')
-parser.add_argument('-l', '--learning-rate', metavar='L', type=float, default=1e-4,
+parser.add_argument('-l', '--learning-rate', metavar='L', type=float, default=1e-3,
                     help='learning rate used for training')
 parser.add_argument('-n', '--num-epochs', metavar='N', type=int, default=50,
                     help='number of training epochs')

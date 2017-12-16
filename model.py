@@ -3,14 +3,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 import math
-import config
-MODELS = ['VSRCNN', 'ESPCN', 'VDCNN', 'VRES', 'VDSR', 'VRNET', 'MFCNN']
 
 class ModelFactory(object):
     
     def create_model(self, model_name):
-        if model_name not in MODELS:
-            raise Exception('cannot find {} model'.format(model_name))
         if model_name == 'VSRCNN':
             return VSRCNN()
         elif model_name == 'ESPCN':
@@ -25,6 +21,8 @@ class ModelFactory(object):
             return VRNET()
         elif model_name == 'MFCNN':
             return MFCNN()
+        else:
+            raise Exception('unknown model {}'.format(model_name))
 
 class VSRCNN(nn.Module):
     """
