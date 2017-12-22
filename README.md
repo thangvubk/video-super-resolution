@@ -1,5 +1,5 @@
 # Video Super Resolution, SRCNN, MFCNN, VDCN (ours) benchmark comparison  
-This is a pytorch implementation of video super resolution algorithms [SRCNN](http://personal.ie.cuhk.edu.hk/~ccloy/files/eccv_2014_deepresolution.pdf), [MFCNN](http://cs231n.stanford.edu/reports/2016/pdfs/212_Report.pdf), and [VDCN](https://drive.google.com/open?id=1A6mHsTWZZhWai8evuEjS-HEGmB2q49fh) (ours). This project is used for one of my course, which aims to improve the performance of the baseline (SRCNN, VDCN). 
+This is a pytorch implementation of video super resolution algorithms [SRCNN](http://personal.ie.cuhk.edu.hk/~ccloy/files/eccv_2014_deepresolution.pdf), [MFCNN](http://cs231n.stanford.edu/reports/2016/pdfs/212_Report.pdf), and [VDCN](https://drive.google.com/open?id=1A6mHsTWZZhWai8evuEjS-HEGmB2q49fh) (ours). This project is used for one of my course, which aims to improve the performance of the baseline (SRCNN, MFCNN). 
 
 To run this project you need to setup the environment, download the dataset, run script to process data, and then you can train and test the network models. I will show you step by step to run this project and i hope it is clear enough :D. 
 ## Prerequisite 
