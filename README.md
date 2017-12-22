@@ -2,11 +2,11 @@
 This is a pytorch implementation of video super resolution algorithms [SRCNN](http://personal.ie.cuhk.edu.hk/~ccloy/files/eccv_2014_deepresolution.pdf), [MFCNN](http://cs231n.stanford.edu/reports/2016/pdfs/212_Report.pdf), and [VDCN](https://drive.google.com/open?id=1A6mHsTWZZhWai8evuEjS-HEGmB2q49fh) (ours). This project is used for one of my course, which aims to improve the performance of the baseline (SRCNN, VDCN). 
 
 To run this project you need to setup the environment, download the dataset, run script to process data, and then you can train and test the network models. I will show you step by step to run this project and i hope it is clear enough :D. 
-## prerequisite 
+## Prerequisite 
 I tested my project in Corei7, 64G RAM, GPU Titan X. Because it use big dataset so you should have CPU/GPU strong enough and about 16 or 24G RAM. 
-# Dataset
+## Dataset
 First, download dataset from this [link](https://drive.google.com/open?id=1-5eKvxDnIqrXE3ABSk6RcPwMrgsKeCsw) and put it in this project. FYI, the training set (IndMya trainset) is taken the India and Myanmar video from [Hamonics](https://www.harmonicinc.com/free-4k-demo-footage/) website. The test sets include IndMya and vid4 (city, walk, foliage, and calendar). After the download completes, unzip it. Your should see the path of data is ``video-super-resolution/data/train/``. 
-# Process data
+## Process data
 The data is processed by MATLAB scripts, the reason for that is interpolation implementation of MATLAB is different from Python. To do that, open your MATLAB then
 ```
 $ cd matlab_scripts/
