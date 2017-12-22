@@ -15,24 +15,27 @@ from torch.utils.data import Dataset
 class DatasetFactory(object):
 
     def create_dataset(self, name, root, scale=3):
-        if name == 'VDCNN':
-            return VDCNN_dataset(root)
-        elif name == 'VSRCNN':
+        if name == 'VSRCNN':
             return VSRCNN_dataset(root)
         elif name == 'VRES':
             return VRES_dataset(root)
-        elif name == 'VDSR':
-            return VDSR_dataset(root)
-        elif name == 'VRNET':
-            return VRNET_dataset(root)
         elif name == 'MFCNN':
             return MFCNN_dataset(root)
+        elif name == 'VRES3D':
+            return VRES3D_dataset(root)
+        elif name == 'VRES10':
+            return VRES10_dataset(root)
+        elif name == 'VRES5':
+            return VRES5_dataset(root)
+        elif name == 'VRES15':
+            return VRES15_dataset(root)
+        elif name == 'VRES7':
+            return VRES7_dataset(root)
         else:
             raise Exception('Unknown dataset {}'.format(name))
 
 class VRES_dataset(Dataset):
     def __init__(self, root):
-        
         root = os.path.join(root, 'dataset.h5')
         f = h5py.File(root)
         self.low_res_imgs = f.get('data')
@@ -92,20 +95,23 @@ class VSRCNN_dataset(VRES_dataset):
         # transform np image to torch tensor
         low_res_img = torch.Tensor(low_res_img)
         high_res_img = torch.Tensor(high_res_img)
-        
 
         return low_res_img, high_res_img
-
-class VDSR_dataset(VSRCNN_dataset):
-    pass
-
-class VDCNN_dataset(VSRCNN_dataset):
-    pass
-
-class VRNET_dataset(VRES_dataset):
-    pass
 
 class MFCNN_dataset(VRES_dataset):
     pass
 
+class VRES3D_dataset(VRES_dataset):
+    pass
 
+class VRES10_dataset(VRES_dataset):
+    pass
+
+class VRES5_dataset(VRES_dataset):
+    pass
+
+class VRES15_dataset(VRES_dataset):
+    pass
+
+class VRES7_dataset(VRES_dataset):
+    pass

@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser(description=description)
 
 parser.add_argument('-m', '--model', metavar='M', type=str, default='VRES',
                     help='network architecture')
-parser.add_argument('-c', '--scale', metavar='S', type=int, default=3, 
+parser.add_argument('-s', '--scale', metavar='S', type=int, default=3, 
                     help='interpolation scale')
 parser.add_argument('--test-set', metavar='NAME', type=str, default='myanmar',
                     help='accompanied with other configs (scale, interp)\
@@ -39,7 +39,7 @@ def display_config():
         print("%15s: %s" %(str(arg), str(getattr(args, arg))))
     print('')
 
-def export(scale, model_name, psnrs, outputs):
+def export(scale, model_name, stats, outputs):
         path = os.path.join('results', model_name, 
                              str(scale) + 'x')
 
@@ -51,10 +51,11 @@ def export(scale, model_name, psnrs, outputs):
             scipy.misc.imsave(img_name, img)
         
         with open(os.path.join(path, model_name +'.txt'), 'w') as f:
-            for i, psnr in enumerate(psnrs):
-                print('Psnr img%d: %.3f' %(i, psnr))
-                f.write('Psnr img%d: %.3f\n' %(i, psnr))
-
+            psnrs, ssims, proc_time = stats
+            f.write('\t\tPSNR\tSSIM\tTime\n')
+            for i  in range(len(psnrs)):
+                print('Img%d: PSNR: %.3f SSIM: %.3f Time: %.4f' %(i, psnrs[i], ssims[i], proc_time[i]))
+                f.write('Img%d:\t%.3f\t%.3f\t%.4f\n' %(i, psnrs[i], ssims[i], proc_time[i]))
         print('Average test psnr: %.3f' %np.mean(psnrs))
         print('Finish!!!')
 
@@ -75,8 +76,8 @@ def main():
     solver = Solver(model, check_point)
 
     print('Testing...')
-    psnrs, outputs = solver.test(train_dataset)
-    export(args.scale, model.name, psnrs, outputs)
+    stats, outputs = solver.test(train_dataset)
+    export(args.scale, model.name, stats, outputs)
 
 if __name__ == '__main__':
     main()

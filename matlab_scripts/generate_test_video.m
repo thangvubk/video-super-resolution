@@ -2,10 +2,8 @@ clear; close all;
 
 %% Configurationi
 % NOTE: you can modify this part
-test_set = 'myanmar';
+test_set = 'vid4/walk'; %(myanmar, India)
 scale = 3;
-width = 960;
-height = 540;
 
 %% Create save path for high resolution and low resolution images based on config
 % NOTE: you should NOT modify the following parts
@@ -24,11 +22,11 @@ if exist(save_path, 'dir') ~= 7
 	mkdir(save_path)
 end
 
-data = zeros(height, width, 5, 1);
-label = zeros(height, width, 5, 1);
+is_init_data = true;
 
 % get folder in read_path
 dirs = dir(read_path);
+
 
 count = 0;
 for i_dir = 1 : length(dirs)
@@ -36,6 +34,8 @@ for i_dir = 1 : length(dirs)
 	if scene_dir(1) ~= 's' %valid folder begin with 's'
         continue
     end
+
+    disp(sprintf('processing dir: %s', scene_dir));
 
     count = count + 1;
     
@@ -53,6 +53,12 @@ for i_dir = 1 : length(dirs)
         lr_im = imresize(hr_im,1/scale,'bicubic');
         lr_im = imresize(lr_im ,[hei, wid],'bicubic');
         
+		if is_init_data
+			data = zeros(hei, wid, 5, 1);
+			label = zeros(hei, wid, 5, 1);
+			is_init_data = false;
+	end
+
         data(:, :, i, count) = lr_im;
         label(:, :, i, count) = hr_im;
     end

@@ -9,9 +9,9 @@ import scipy.misc
 import progressbar
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
+import pytorch_ssim
 import os
-
-
+import time
 
 class Solver(object):
     """
@@ -76,7 +76,7 @@ class Solver(object):
     def _epoch_step(self, dataset, epoch):
         """ Perform 1 training 'epoch' on the 'dataset'"""
         dataloader = DataLoader(dataset, batch_size=self.batch_size,
-                                shuffle=True, num_workers=8)
+                                shuffle=True, num_workers=4)
 
         num_batchs = len(dataset)//self.batch_size
 
@@ -99,20 +99,21 @@ class Solver(object):
             output_batch = self.model(input_batch)
             loss = self.loss_fn(output_batch, label_batch)
 
-            # save statistic
-            self.hist_loss.append(loss.data[0])
             running_loss += loss.data[0]
             
             # Backward + update
             loss.backward()
+            nn.utils.clip_grad_norm(self.model.parameters(), 0.4)
             self.optimizer.step()
 
             if self.verbose:
                 bar.update(i, force=True)
-
+        
+        average_loss = running_loss/num_batchs
+        self.hist_loss.append(average_loss)
         if self.verbose:
             print('Epoch  %5d, loss %.5f' \
-                        %(epoch, running_loss/num_batchs))
+                        %(epoch, average_loss))
 
     def _wrap_variable(self, input_batch, label_batch, use_gpu):
         if use_gpu:
@@ -149,21 +150,34 @@ class Solver(object):
             batch_size = self.batch_size
 
         dataloader = DataLoader(dataset, batch_size=batch_size,
-                                shuffle=False, num_workers=8)
+                                shuffle=False, num_workers=4)
         
         avr_psnr = 0
+        avr_ssim = 0
         
         # book keeping variables for test phase
         psnrs = [] # psnr for each image
+        ssims = [] # ssim for each image
+        proc_time = [] # processing time
         outputs = [] # output for each image
 
         for batch, (input_batch, label_batch) in enumerate(dataloader):
             input_batch, label_batch = self._wrap_variable(input_batch,
                                                            label_batch,
                                                            self.use_gpu)
-            
-            output_batch = self.model(input_batch)
+            if is_test:
+                start = time.time()
+                output_batch = self.model(input_batch)
+                elapsed_time = time.time() - start
+            else:
+                output_batch = self.model(input_batch)
 
+            # ssim is calculated with the normalize (range [0, 1]) image
+            ssim = pytorch_ssim.ssim(output_batch + 0.5, label_batch + 0.5, size_average=False)
+            ssim = torch.sum(ssim.data)
+            avr_ssim += ssim
+
+            # calculate PSRN
             output = output_batch.data
             label = label_batch.data
 
@@ -179,14 +193,17 @@ class Solver(object):
             # save psnrs and outputs for statistics and generate image at test time
             if is_test:
                 psnrs.append(psnr)
+                ssims.append(ssim)
+                proc_time.append(elapsed_time)
                 np_output = output.cpu().numpy()
                 outputs.append(np_output[0])
-
             
         epoch_size = len(dataset)
         avr_psnr /= epoch_size
+        avr_ssim /= epoch_size
+        stats = (psnrs, ssims, proc_time)
 
-        return avr_psnr, psnrs, outputs
+        return avr_psnr, avr_ssim, stats, outputs
      
     def train(self, train_dataset):
         """
@@ -199,7 +216,7 @@ class Solver(object):
         """
 
         # check fine_tuning option
-        model_path = os.path.join(self.check_point + 'model.pt')
+        model_path = os.path.join(self.check_point, 'model.pt')
         if self.fine_tune and not os.path.exists(model_path):
             raise Exception('Cannot find %s.' %model_path)
         elif self.fine_tune and os.path.exists(model_path):
@@ -221,11 +238,12 @@ class Solver(object):
                 print('Computing PSNR...')
 
             # capture running PSNR on train and val dataset
-            train_psnr, _, _ = self._check_PSNR(train_dataset)
+            train_psnr, train_ssim, _, _ = self._check_PSNR(train_dataset)
             self.hist_train_psnr.append(train_psnr)
             
             if self.verbose:
-                print('%s Average train PSNR %.3fdB' %(self.model.name, train_psnr))
+                print('%s Average train PSNR:%.3fdB average ssim: %.3f' %(self.model.name, 
+                    train_psnr, train_ssim))
                 print('')
             
         # write the model to hard-disk for testing
@@ -244,6 +262,6 @@ class Solver(object):
             raise Exception('Cannot find %s.' %model_path)
         
         self.model = torch.load(model_path)
-        _, psnrs, outputs = self._check_PSNR(dataset, is_test=True)
-        return psnrs, outputs
+        _, _, stats, outputs = self._check_PSNR(dataset, is_test=True)
+        return stats, outputs
             

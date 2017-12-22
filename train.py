@@ -4,13 +4,14 @@ import os
 from SR_datasets import DatasetFactory
 from model import ModelFactory
 from solver import Solver
+from loss import get_loss_fn
 description='Video Super Resolution pytorch implementation'
 
 parser = argparse.ArgumentParser(description=description)
 
 parser.add_argument('-m', '--model', metavar='M', type=str, default='VRES',
                     help='network architecture')
-parser.add_argument('-c', '--scale', metavar='S', type=int, default=3, 
+parser.add_argument('-s', '--scale', metavar='S', type=int, default=3, 
                     help='interpolation scale')
 parser.add_argument('--train-set', metavar='T', type=str, default='train',
                     help='data set for training')
@@ -39,7 +40,7 @@ def get_full_path(scale, train_set):
 def display_config():
     print('############################################################')
     print('# Video Super Resolution - Pytorch implementation          #')
-    print('# by Thang Vu (thangvubk@gmail.com                         #')
+    print('# by Thang Vu (thangvubk@gmail.com)                        #')
     print('############################################################')
     print('')
     print('-------YOUR SETTINGS_________')
@@ -61,14 +62,16 @@ def main():
     model_factory = ModelFactory()
     model = model_factory.create_model(args.model)
     
+    loss_fn = get_loss_fn(model.name)
+
     check_point = os.path.join('check_point', model.name, str(args.scale) + 'x')
-    solver = Solver(model, check_point, batch_size=args.batch_size,
+
+    solver = Solver(model, check_point, loss_fn=loss_fn, batch_size=args.batch_size,
                     num_epochs=args.num_epochs, learning_rate=args.learning_rate,
                     fine_tune=args.fine_tune, verbose=args.verbose)
 
     print('Training...')
     solver.train(train_dataset)
-
 if __name__ == '__main__':
     main()
 

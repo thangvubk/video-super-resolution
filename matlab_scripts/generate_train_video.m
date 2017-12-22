@@ -3,10 +3,10 @@ clear; close all;
 %% Configuration 
 % NOTE: you can modify this part
 train_set = 'train';
-scale = 3;
+scale = 4;
 use_upscale_interpolation = true;
 hr_size = 48;
-stride = 24;
+stride = 36;
 
 %% Create save path for high resolution and low resolution images based on config
 % NOTE: you should NOT modify the following parts
@@ -89,9 +89,6 @@ for i_dir = 1 : length(dirs)
     end
 end
 
-order = randperm(base_count + count);
-data = data(:, :, :, order);
-label = label(:, :, :, order); 
 
 %% writing to HDF5
 chunksz = 32;
