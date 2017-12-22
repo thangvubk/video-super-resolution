@@ -11,11 +11,11 @@ description='Video Super Resolution pytorch implementation'
 parser = argparse.ArgumentParser(description=description)
 
 parser.add_argument('-m', '--model', metavar='M', type=str, default='VRES',
-                    help='network architecture')
+                    help='network architecture. Default False')
 parser.add_argument('-s', '--scale', metavar='S', type=int, default=3, 
-                    help='interpolation scale')
+                    help='interpolation scale. Default 3')
 parser.add_argument('--test-set', metavar='NAME', type=str, default='IndMya',
-                    help='dataset for testing')
+                    help='dataset for testing. Default IndMya')
 args = parser.parse_args()
 
 

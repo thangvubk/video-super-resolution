@@ -17,17 +17,16 @@ class Solver(object):
     """
     A Solver encapsulates all the logic necessary for training super resolution
     The Solver accepts both training and validation data label so it can 
-    periodically check the PSNR on training and validation.
+    periodically check the PSNR on training
     
     To train a model, you will first construct a Solver instance, pass the model,
     datasets, and various option (optimizer, loss_fn, batch_size, etc) to the
     constructor.
 
-    After train() method is called, the 'self.model' will be the best model on 
-    validation set. The best model is saved into 'check_point' dir, which is used
+    After train() method is called. The best model is saved into 'check_point' dir, which is used
     for the testing time. 
 
-    For statistics, 'loss' history, 'avr_train_psnr' history, and 'avr_val_psnr' history
+    For statistics, 'loss' history, 'avr_train_psnr' history
     are also saved. 
     """
     def __init__(self, model, check_point, **kwargs):

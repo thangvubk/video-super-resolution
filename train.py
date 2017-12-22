@@ -10,22 +10,22 @@ description='Video Super Resolution pytorch implementation'
 parser = argparse.ArgumentParser(description=description)
 
 parser.add_argument('-m', '--model', metavar='M', type=str, default='VRES',
-                    help='network architecture')
+                    help='network architecture. Default VRES')
 parser.add_argument('-s', '--scale', metavar='S', type=int, default=3, 
-                    help='interpolation scale')
+                    help='interpolation scale. Default 3')
 parser.add_argument('--train-set', metavar='T', type=str, default='train',
-                    help='data set for training')
+                    help='data set for training. Default train')
 parser.add_argument('-b', '--batch-size', metavar='B', type=int, default=100,
-                    help='batch size used for training')
+                    help='batch size used for training. Default 100')
 parser.add_argument('-l', '--learning-rate', metavar='L', type=float, default=1e-3,
-                    help='learning rate used for training')
+                    help='learning rate used for training. Default 1e-3')
 parser.add_argument('-n', '--num-epochs', metavar='N', type=int, default=50,
-                    help='number of training epochs')
+                    help='number of training epochs. Default 100')
 parser.add_argument('-f', '--fine-tune', dest='fine_tune', action='store_true',
                     help='fine tune the model under check_point dir,\
-                    instead of training from scratch')
+                    instead of training from scratch. Default False')
 parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
-                    help='print training information')
+                    help='print training information. Default False')
 
 args = parser.parse_args()
 
