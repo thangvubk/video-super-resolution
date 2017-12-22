@@ -2,8 +2,8 @@ clear; close all;
 
 %% Configurationi
 % NOTE: you can modify this part
-test_set = 'vid4/walk'; %(myanmar, India)
-scale = 3;
+test_set = 'IndMya'; %(IndMya, vid4/city, vid3/walk, vid4/calendar, vid4/foliage)
+scale = 3;  % (2, 3, 4)
 
 %% Create save path for high resolution and low resolution images based on config
 % NOTE: you should NOT modify the following parts

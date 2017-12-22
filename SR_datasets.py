@@ -9,7 +9,6 @@ import numpy as np
 import h5py
 import torch
 
-import config
 from torch.utils.data import Dataset
 
 class DatasetFactory(object):

@@ -14,9 +14,8 @@ parser.add_argument('-m', '--model', metavar='M', type=str, default='VRES',
                     help='network architecture')
 parser.add_argument('-s', '--scale', metavar='S', type=int, default=3, 
                     help='interpolation scale')
-parser.add_argument('--test-set', metavar='NAME', type=str, default='myanmar',
-                    help='accompanied with other configs (scale, interp)\
-                    to create full path of test data')
+parser.add_argument('--test-set', metavar='NAME', type=str, default='IndMya',
+                    help='dataset for testing')
 args = parser.parse_args()
 
 

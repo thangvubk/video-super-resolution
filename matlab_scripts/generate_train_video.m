@@ -3,13 +3,13 @@ clear; close all;
 %% Configuration 
 % NOTE: you can modify this part
 train_set = 'train';
-scale = 4;
-use_upscale_interpolation = true;
+scale = 3;
 hr_size = 48;
 stride = 36;
 
 %% Create save path for high resolution and low resolution images based on config
 % NOTE: you should NOT modify the following parts
+use_upscale_interpolation = true;
 disp(sprintf('%10s: %s', 'Train set', train_set));
 disp(sprintf('%10s: %d', 'Scale', scale));
 
