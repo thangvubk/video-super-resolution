@@ -1,15 +1,11 @@
 from __future__ import division
-import torchvision
-import torchvision.transforms as T
 import os
-import glob
-import scipy.misc
-import scipy.ndimage
 import numpy as np
 import h5py
 import torch
 
 from torch.utils.data import Dataset
+
 
 class DatasetFactory(object):
 
@@ -33,7 +29,9 @@ class DatasetFactory(object):
         else:
             raise Exception('Unknown dataset {}'.format(name))
 
+
 class VRES_dataset(Dataset):
+
     def __init__(self, root):
         root = os.path.join(root, 'dataset.h5')
         f = h5py.File(root)
@@ -51,7 +49,7 @@ class VRES_dataset(Dataset):
 
         low_res_imgs = self.low_res_imgs[idx]
         high_res_imgs = self.high_res_imgs[idx]
-        
+
         # h5 in matlab is (H, W, C)
         # h5 in python is (C, W, H)
         # we need to transpose to (C, H, W)
@@ -70,12 +68,13 @@ class VRES_dataset(Dataset):
 
         return low_res_imgs, high_res_img
 
+
 class VSRCNN_dataset(VRES_dataset):
     def __getitem__(self, idx):
         center = 2
         low_res_imgs = self.low_res_imgs[idx]
         high_res_imgs = self.high_res_imgs[idx]
-        
+
         # h5 in matlab is (H, W, C)
         # h5 in python is (C, W, H)
         # we need to transpose to (C, H, W)
@@ -97,20 +96,26 @@ class VSRCNN_dataset(VRES_dataset):
 
         return low_res_img, high_res_img
 
+
 class MFCNN_dataset(VRES_dataset):
     pass
+
 
 class VRES3D_dataset(VRES_dataset):
     pass
 
+
 class VRES10_dataset(VRES_dataset):
     pass
+
 
 class VRES5_dataset(VRES_dataset):
     pass
 
+
 class VRES15_dataset(VRES_dataset):
     pass
+
 
 class VRES7_dataset(VRES_dataset):
     pass

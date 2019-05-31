@@ -3,9 +3,7 @@ import torch
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 import torch.nn as nn
-import numpy as np
 import math
-import scipy.misc
 import progressbar
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
@@ -13,21 +11,22 @@ import pytorch_ssim
 import os
 import time
 
+
 class Solver(object):
     """
     A Solver encapsulates all the logic necessary for training super resolution
-    The Solver accepts both training and validation data label so it can 
+    The Solver accepts both training and validation data label so it can
     periodically check the PSNR on training
-    
-    To train a model, you will first construct a Solver instance, pass the model,
-    datasets, and various option (optimizer, loss_fn, batch_size, etc) to the
-    constructor.
 
-    After train() method is called. The best model is saved into 'check_point' dir, which is used
-    for the testing time. 
+    To train a model, you will first construct a Solver instance,
+    pass the model, datasets, and various option (optimizer, loss_fn,
+    batch_size, etc) to the constructor.
+
+    After train() method is called. The best model is saved into
+    'check_point' dir, which is used for the testing time.
 
     For statistics, 'loss' history, 'avr_train_psnr' history
-    are also saved. 
+    are also saved.
     """
     def __init__(self, model, check_point, **kwargs):
         """
@@ -42,7 +41,7 @@ class Solver(object):
         - batch_size: batch size for train phase
         - optimizer: update rule for model parameters
         - loss_fn: loss function for the model
-        - fine_tune: fine tune the model in check_point dir instead of training 
+        - fine_tune: fine tune the model in check_point dir instead of training
                      from scratch
         - verbose: print training information
         - print_every: period of statistics printing
@@ -53,9 +52,10 @@ class Solver(object):
         self.batch_size = kwargs.pop('batch_size', 128)
         self.learning_rate = kwargs.pop('learning_rate', 1e-4)
         self.optimizer = optim.Adam(
-            model.parameters(), 
+            model.parameters(),
             lr=self.learning_rate, weight_decay=1e-6)
-        self.scheduler = lr_scheduler.StepLR(self.optimizer, step_size=20, gamma=0.5)
+        self.scheduler = lr_scheduler.StepLR(
+            self.optimizer, step_size=20, gamma=0.5)
         self.loss_fn = kwargs.pop('loss_fn', nn.MSELoss())
         self.fine_tune = kwargs.pop('fine_tune', False)
         self.verbose = kwargs.pop('verbose', False)
@@ -71,7 +71,7 @@ class Solver(object):
         self.hist_train_psnr = []
         self.hist_val_psnr = []
         self.hist_loss = []
-    
+
     def _epoch_step(self, dataset, epoch):
         """ Perform 1 training 'epoch' on the 'dataset'"""
         dataloader = DataLoader(dataset, batch_size=self.batch_size,
@@ -86,20 +86,20 @@ class Solver(object):
         running_loss = 0
         for i, (input_batch, label_batch) in enumerate(dataloader):
 
-            #Wrap with torch Variable
+            # Wrap with torch Variable
             input_batch, label_batch = self._wrap_variable(input_batch,
                                                            label_batch,
                                                            self.use_gpu)
 
-            #zero the grad
+            # zero the grad
             self.optimizer.zero_grad()
 
             # Forward
             output_batch = self.model(input_batch)
             loss = self.loss_fn(output_batch, label_batch)
 
-            running_loss += loss.data[0]
-            
+            running_loss += loss.item()
+
             # Backward + update
             loss.backward()
             nn.utils.clip_grad_norm(self.model.parameters(), 0.4)
@@ -107,12 +107,11 @@ class Solver(object):
 
             if self.verbose:
                 bar.update(i, force=True)
-        
+
         average_loss = running_loss/num_batchs
         self.hist_loss.append(average_loss)
         if self.verbose:
-            print('Epoch  %5d, loss %.5f' \
-                        %(epoch, average_loss))
+            print('Epoch  %5d, loss %.5f' % (epoch, average_loss))
 
     def _wrap_variable(self, input_batch, label_batch, use_gpu):
         if use_gpu:
@@ -122,23 +121,23 @@ class Solver(object):
             input_batch, label_batch = (Variable(input_batch),
                                         Variable(label_batch))
         return input_batch, label_batch
-    
+
     def _comput_PSNR(self, imgs1, imgs2):
-        """Compute PSNR between two image array and return the psnr summation"""
+        """Compute PSNR between two image array and return the psnr sum"""
         N = imgs1.size()[0]
         imdiff = imgs1 - imgs2
         imdiff = imdiff.view(N, -1)
         rmse = torch.sqrt(torch.mean(imdiff**2, dim=1))
-        psnr = 20*torch.log(255/rmse)/math.log(10) # psnr = 20*log10(255/rmse)
-        psnr =  torch.sum(psnr)
+        psnr = 20*torch.log(255/rmse)/math.log(10)  # psnr = 20*log10(255/rmse)
+        psnr = torch.sum(psnr)
         return psnr
 
     def _check_PSNR(self, dataset, is_test=False):
         """
-        Get the output of model with the input being 'dataset' then 
+        Get the output of model with the input being 'dataset' then
         compute the PSNR between output and label.
-        
-        if 'is_test' is True, psnr and output of each image is also 
+
+        if 'is_test' is True, psnr and output of each image is also
         return for statistics and generate output image at test phase
         """
 
@@ -150,15 +149,15 @@ class Solver(object):
 
         dataloader = DataLoader(dataset, batch_size=batch_size,
                                 shuffle=False, num_workers=4)
-        
+
         avr_psnr = 0
         avr_ssim = 0
-        
+
         # book keeping variables for test phase
-        psnrs = [] # psnr for each image
-        ssims = [] # ssim for each image
-        proc_time = [] # processing time
-        outputs = [] # output for each image
+        psnrs = []  # psnr for each image
+        ssims = []  # ssim for each image
+        proc_time = []   # processing time
+        outputs = []     # output for each image
 
         for batch, (input_batch, label_batch) in enumerate(dataloader):
             input_batch, label_batch = self._wrap_variable(input_batch,
@@ -172,7 +171,8 @@ class Solver(object):
                 output_batch = self.model(input_batch)
 
             # ssim is calculated with the normalize (range [0, 1]) image
-            ssim = pytorch_ssim.ssim(output_batch + 0.5, label_batch + 0.5, size_average=False)
+            ssim = pytorch_ssim.ssim(
+                output_batch + 0.5, label_batch + 0.5, size_average=False)
             ssim = torch.sum(ssim.data)
             avr_ssim += ssim
 
@@ -182,28 +182,28 @@ class Solver(object):
 
             output = (output + 0.5)*255
             label = (label + 0.5)*255
-            
+
             output = output.squeeze(dim=1)
             label = label.squeeze(dim=1)
-            
+
             psnr = self._comput_PSNR(output, label)
             avr_psnr += psnr
-            
-            # save psnrs and outputs for statistics and generate image at test time
+
+            # save psnrs and outputs for stats and generate image at test time
             if is_test:
                 psnrs.append(psnr)
                 ssims.append(ssim)
                 proc_time.append(elapsed_time)
                 np_output = output.cpu().numpy()
                 outputs.append(np_output[0])
-            
+
         epoch_size = len(dataset)
         avr_psnr /= epoch_size
         avr_ssim /= epoch_size
         stats = (psnrs, ssims, proc_time)
 
         return avr_psnr, avr_ssim, stats, outputs
-     
+
     def train(self, train_dataset):
         """
         Train the 'train_dataset',
@@ -217,16 +217,17 @@ class Solver(object):
         # check fine_tuning option
         model_path = os.path.join(self.check_point, 'model.pt')
         if self.fine_tune and not os.path.exists(model_path):
-            raise Exception('Cannot find %s.' %model_path)
+            raise Exception('Cannot find %s.' % model_path)
         elif self.fine_tune and os.path.exists(model_path):
             if self.verbose:
-                print('Loading %s for finetuning.' %model_path)
+                print('Loading %s for finetuning.' % model_path)
             self.model = torch.load(model_path)
-            self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
-        
+            self.optimizer = optim.Adam(
+                self.model.parameters(), lr=self.learning_rate)
+
         # capture best model
-        best_val_psnr = -1
-        best_model_state = self.model.state_dict()
+        # best_val_psnr = -1
+        # best_model_state = self.model.state_dict()
 
         # Train the model
         for epoch in range(self.num_epochs):
@@ -239,12 +240,12 @@ class Solver(object):
             # capture running PSNR on train and val dataset
             train_psnr, train_ssim, _, _ = self._check_PSNR(train_dataset)
             self.hist_train_psnr.append(train_psnr)
-            
+
             if self.verbose:
-                print('%s Average train PSNR:%.3fdB average ssim: %.3f' %(self.model.name, 
-                    train_psnr, train_ssim))
+                print('%s Average train PSNR:%.3fdB average ssim: %.3f'
+                      % (self.model.name, train_psnr, train_ssim))
                 print('')
-            
+
         # write the model to hard-disk for testing
         if not os.path.exists(self.check_point):
             os.makedirs(self.check_point)
@@ -254,13 +255,12 @@ class Solver(object):
     def test(self, dataset):
         """
         Load the model stored in train_model.pt from training phase,
-        then return the average PNSR on test samples. 
+        then return the average PNSR on test samples.
         """
         model_path = os.path.join(self.check_point, 'model.pt')
         if not os.path.exists(model_path):
-            raise Exception('Cannot find %s.' %model_path)
-        
+            raise Exception('Cannot find %s.' % model_path)
+
         self.model = torch.load(model_path)
         _, _, stats, outputs = self._check_PSNR(dataset, is_test=True)
         return stats, outputs
-            

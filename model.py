@@ -1,11 +1,11 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
 import math
 
+
 class ModelFactory(object):
-    
+
     def create_model(self, model_name):
         if model_name == 'VSRCNN':
             return VSRCNN()
@@ -24,12 +24,13 @@ class ModelFactory(object):
         else:
             raise Exception('unknown model {}'.format(model_name))
 
+
 class VSRCNN(nn.Module):
     """
     Model for SRCNN
 
-    Low Resolution -> Conv1 -> Relu -> Conv2 -> Relu -> Conv3 -> High Resulution
-    
+    LR -> Conv1 -> Relu -> Conv2 -> Relu -> Conv3 -> HR
+
     Args:
         - C1, C2, C3: num output channels for Conv1, Conv2, and Conv3
         - F1, F2, F3: filter size
@@ -39,15 +40,16 @@ class VSRCNN(nn.Module):
                  F1=9, F2=1, F3=5):
         super(VSRCNN, self).__init__()
         self.name = 'VSRCNN'
-        self.conv1 = nn.Conv2d(1, C1, F1, padding=4, bias=False) # in, out, kernel
+        self.conv1 = nn.Conv2d(1, C1, F1, padding=4, bias=False)
         self.conv2 = nn.Conv2d(C1, C2, F2)
         self.conv3 = nn.Conv2d(C2, C3, F3, padding=2, bias=False)
-    
+
     def forward(self, x):
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
         x = self.conv3(x)
         return x
+
 
 class VRES(nn.Module):
     def __init__(self):
@@ -65,7 +67,6 @@ class VRES(nn.Module):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
                 m.weight.data.normal_(0, math.sqrt(2. / n))
 
-    
     def make_layer(self, block, num_of_layer):
         layers = []
         for _ in range(num_of_layer):
@@ -86,12 +87,13 @@ class VRES(nn.Module):
 class Conv_ReLU_Block(nn.Module):
     def __init__(self):
         super(Conv_ReLU_Block, self).__init__()
-        self.conv = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv = nn.Conv2d(64, 64, 3, padding=1, bias=False)
         self.relu = nn.ReLU(inplace=True)
-        
+
     def forward(self, x):
         return self.relu(self.conv(x))
-        
+
+
 class MFCNN(nn.Module):
     def __init__(self):
         super(MFCNN, self).__init__()
@@ -112,28 +114,30 @@ class MFCNN(nn.Module):
         x = self.conv6(x)
         return x
 
+
 class VRES10(VRES):
     def __init__(self):
         super(VRES10, self).__init__()
-        self.name = 'VRES10'        
+        self.name = 'VRES10'
         self.residual_layer = self.make_layer(Conv_ReLU_Block, 8)
+
 
 class VRES5(VRES):
     def __init__(self):
         super(VRES5, self).__init__()
-        self.name = 'VRES5'        
+        self.name = 'VRES5'
         self.residual_layer = self.make_layer(Conv_ReLU_Block, 3)
+
 
 class VRES15(VRES):
     def __init__(self):
         super(VRES15, self).__init__()
-        self.name = 'VRES15'        
+        self.name = 'VRES15'
         self.residual_layer = self.make_layer(Conv_ReLU_Block, 13)
+
 
 class VRES7(VRES):
     def __init__(self):
         super(VRES7, self).__init__()
-        self.name = 'VRES7'        
+        self.name = 'VRES7'
         self.residual_layer = self.make_layer(Conv_ReLU_Block, 5)
-
-
