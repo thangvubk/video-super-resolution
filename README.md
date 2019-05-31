@@ -32,15 +32,7 @@ Do the similar thing with test set:
 $ generate_test_video
 ```
 > NOTE: If you want to run train and test the network with different dataset and frame up-scale factor, you should modify the dataset, and scale variable in the ``generate_test_video`` and ``generate_train_video`` scripts (see the scripts for instructions).
-## Setup
-Install depenencies: ``pip install -r requirement.txt``
 
-Install Pytorch: follow instruction in Pytorch official [website](http://pytorch.org/). Based on your hardware and python version, install the appopriate Pytorch version.
-For example, my machine run Python2.7 and Cuda8, so i can install Pytorch with 
-```
-$ pip install http://download.pytorch.org/whl/cu80/torch-0.3.0.post4-cp27-cp27mu-linux_x86_64.whl 
-$ pip install torchvision 
-```
 ## Execute the code
 To train the network:
 ```python train.py --verbose```
