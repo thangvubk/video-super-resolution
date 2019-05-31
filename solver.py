@@ -4,7 +4,7 @@ import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 import torch.nn as nn
 import math
-import progressbar
+from tqdm import tqdm
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 import pytorch_ssim
@@ -79,12 +79,8 @@ class Solver(object):
 
         num_batchs = len(dataset)//self.batch_size
 
-        # observe the training progress
-        if self.verbose:
-            bar = progressbar.ProgressBar(max_value=num_batchs)
-
         running_loss = 0
-        for i, (input_batch, label_batch) in enumerate(dataloader):
+        for i, (input_batch, label_batch) in enumerate(tqdm(dataloader)):
 
             # Wrap with torch Variable
             input_batch, label_batch = self._wrap_variable(input_batch,
@@ -102,11 +98,8 @@ class Solver(object):
 
             # Backward + update
             loss.backward()
-            nn.utils.clip_grad_norm(self.model.parameters(), 0.4)
+            nn.utils.clip_grad_norm_(self.model.parameters(), 0.4)
             self.optimizer.step()
-
-            if self.verbose:
-                bar.update(i, force=True)
 
         average_loss = running_loss/num_batchs
         self.hist_loss.append(average_loss)
@@ -242,8 +235,8 @@ class Solver(object):
             self.hist_train_psnr.append(train_psnr)
 
             if self.verbose:
-                print('%s Average train PSNR:%.3fdB average ssim: %.3f'
-                      % (self.model.name, train_psnr, train_ssim))
+                print('Average train PSNR:%.3fdB. Average ssim: %.3f'
+                      % (train_psnr, train_ssim))
                 print('')
 
         # write the model to hard-disk for testing
