@@ -156,7 +156,7 @@ class Solver(object):
             # ssim is calculated with the normalize (range [0, 1]) image
             ssim = pytorch_ssim.ssim(
                 output_batch + 0.5, label_batch + 0.5, size_average=False)
-            ssim = torch.sum(ssim.data)
+            ssim = torch.sum(ssim).item()
             avr_ssim += ssim
 
             # calculate PSRN
@@ -170,6 +170,7 @@ class Solver(object):
             label = label.squeeze(dim=1)
 
             psnr = self._comput_PSNR(output, label)
+            psnr = psnr.item()
             avr_psnr += psnr
 
             # save psnrs and outputs for stats and generate image at test time
@@ -239,12 +240,11 @@ class Solver(object):
                 best_val_psnr = val_psnr
             print('')
 
-    def test(self, dataset):
+    def test(self, dataset, model_path):
         """
         Load the model stored in train_model.pt from training phase,
         then return the average PNSR on test samples.
         """
-        model_path = os.path.join(self.check_point, 'model.pt')
         if not os.path.exists(model_path):
             raise Exception('Cannot find %s.' % model_path)
 
