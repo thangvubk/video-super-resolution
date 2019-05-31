@@ -8,6 +8,7 @@ I tested my project in Corei7, 64G RAM, GPU Titan X. Because it use big dataset 
 - Pytorch 1.0
 - tqdm
 - h5py
+- cv2
 ## Dataset
 First, download dataset from this [link](https://drive.google.com/open?id=1-5eKvxDnIqrXE3ABSk6RcPwMrgsKeCsw) and put it in this project. FYI, the training set (IndMya trainset) is taken the India and Myanmar video from [Hamonics](https://www.harmonicinc.com/free-4k-demo-footage/) website. The test sets include IndMya and vid4 (city, walk, foliage, and calendar). After the download completes, unzip it. Your should see the path of data is ``video-super-resolution/data/train/``. 
 ## Process data
