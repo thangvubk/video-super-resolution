@@ -1,4 +1,8 @@
 from __future__ import division
+import os
+import time
+from shutil import copyfile
+
 import torch
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
@@ -8,8 +12,6 @@ from tqdm import tqdm
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 import pytorch_ssim
-import os
-import time
 
 
 class Solver(object):
@@ -25,8 +27,6 @@ class Solver(object):
     After train() method is called. The best model is saved into
     'check_point' dir, which is used for the testing time.
 
-    For statistics, 'loss' history, 'avr_train_psnr' history
-    are also saved.
     """
     def __init__(self, model, check_point, **kwargs):
         """
@@ -68,9 +68,6 @@ class Solver(object):
         self.use_gpu = torch.cuda.is_available()
         if self.use_gpu:
             self.model = self.model.cuda()
-        self.hist_train_psnr = []
-        self.hist_val_psnr = []
-        self.hist_loss = []
 
     def _epoch_step(self, dataset, epoch):
         """ Perform 1 training 'epoch' on the 'dataset'"""
@@ -102,7 +99,6 @@ class Solver(object):
             self.optimizer.step()
 
         average_loss = running_loss/num_batchs
-        self.hist_loss.append(average_loss)
         if self.verbose:
             print('Epoch  %5d, loss %.5f' % (epoch, average_loss))
 
@@ -134,13 +130,7 @@ class Solver(object):
         return for statistics and generate output image at test phase
         """
 
-        # process one image per iter for test phase
-        if is_test:
-            batch_size = 1
-        else:
-            batch_size = self.batch_size
-
-        dataloader = DataLoader(dataset, batch_size=batch_size,
+        dataloader = DataLoader(dataset, batch_size=1,
                                 shuffle=False, num_workers=4)
 
         avr_psnr = 0
@@ -197,7 +187,7 @@ class Solver(object):
 
         return avr_psnr, avr_ssim, stats, outputs
 
-    def train(self, train_dataset):
+    def train(self, train_dataset, val_dataset):
         """
         Train the 'train_dataset',
         if 'fine_tune' is True, we finetune the model under 'check_point' dir
@@ -219,8 +209,7 @@ class Solver(object):
                 self.model.parameters(), lr=self.learning_rate)
 
         # capture best model
-        # best_val_psnr = -1
-        # best_model_state = self.model.state_dict()
+        best_val_psnr = -1
 
         # Train the model
         for epoch in range(self.num_epochs):
@@ -228,22 +217,27 @@ class Solver(object):
             self.scheduler.step()
 
             if self.verbose:
-                print('Computing PSNR...')
+                print('Validate PSNR...')
 
-            # capture running PSNR on train and val dataset
-            train_psnr, train_ssim, _, _ = self._check_PSNR(train_dataset)
-            self.hist_train_psnr.append(train_psnr)
+            # compuate validate PSNR and SSIM on val dataset
+            val_psnr, val_ssim, _, _ = self._check_PSNR(val_dataset)
 
             if self.verbose:
-                print('Average train PSNR:%.3fdB. Average ssim: %.3f'
-                      % (train_psnr, train_ssim))
-                print('')
+                print('Val PSNR: %.3fdB. Val ssim: %.3f'
+                      % (val_psnr, val_ssim))
 
-        # write the model to hard-disk for testing
-        if not os.path.exists(self.check_point):
-            os.makedirs(self.check_point)
-        model_path = os.path.join(self.check_point, 'model.pt')
-        torch.save(self.model, model_path)
+            # write the model to hard-disk for testing
+            print('Saving model')
+            if not os.path.exists(self.check_point):
+                os.makedirs(self.check_point)
+            model_path = os.path.join(self.check_point, 'epoch{}.pt'.format(epoch))
+            torch.save(self.model, model_path)
+            if best_val_psnr < val_psnr:
+                print('Copy best model')
+                target_path = os.path.join(self.check_point, 'best_model.pt')
+                copyfile(model_path, target_path)
+                best_val_psnr = val_psnr
+            print('')
 
     def test(self, dataset):
         """

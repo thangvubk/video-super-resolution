@@ -17,6 +17,8 @@ parser.add_argument('-s', '--scale', metavar='S', type=int, default=3,
                     help='interpolation scale. Default 3')
 parser.add_argument('--train-set', metavar='T', type=str, default='train',
                     help='data set for training. Default train')
+parser.add_argument('--val-set', metavar='V', type=str, default='test/IndMya',
+                    help='data set for validation. Default IndMya')
 parser.add_argument('-b', '--batch-size', metavar='B', type=int, default=100,
                     help='batch size used for training. Default 100')
 parser.add_argument('-l', '--learning-rate', metavar='L', type=float,
@@ -35,7 +37,7 @@ args = parser.parse_args()
 def get_full_path(scale, train_set):
     """
     Get full path of data based on configs and target path
-    example: data/interpolation/test/set5/3x
+    example: preprocessed_data/test/set5/3x
     """
     scale_path = str(scale) + 'x'
     return os.path.join('preprocessed_data', train_set, scale_path)
@@ -56,12 +58,15 @@ def display_config():
 def main():
     display_config()
 
-    dataset_root = get_full_path(args.scale, args.train_set)
+    train_root = get_full_path(args.scale, args.train_set)
+    val_root = get_full_path(args.scale, args.val_set)
 
     print('Contructing dataset...')
     dataset_factory = DatasetFactory()
     train_dataset = dataset_factory.create_dataset(args.model,
-                                                   dataset_root)
+                                                   train_root)
+    val_dataset = dataset_factory.create_dataset(args.model,
+                                                 val_root)
 
     model_factory = ModelFactory()
     model = model_factory.create_model(args.model)
@@ -76,7 +81,7 @@ def main():
         fine_tune=args.fine_tune, verbose=args.verbose)
 
     print('Training...')
-    solver.train(train_dataset)
+    solver.train(train_dataset, val_dataset)
 
 
 if __name__ == '__main__':
