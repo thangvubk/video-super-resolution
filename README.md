@@ -4,6 +4,10 @@ This is a pytorch implementation of video super resolution algorithms [SRCNN](ht
 To run this project you need to setup the environment, download the dataset, run script to process data, and then you can train and test the network models. I will show you step by step to run this project and i hope it is clear enough :D. 
 ## Prerequisite 
 I tested my project in Corei7, 64G RAM, GPU Titan X. Because it use big dataset so you should have CPU/GPU strong enough and about 16 or 24G RAM. 
+## Environment
+- Pytorch 1.0
+- tqdm
+- h5py
 ## Dataset
 First, download dataset from this [link](https://drive.google.com/open?id=1-5eKvxDnIqrXE3ABSk6RcPwMrgsKeCsw) and put it in this project. FYI, the training set (IndMya trainset) is taken the India and Myanmar video from [Hamonics](https://www.harmonicinc.com/free-4k-demo-footage/) website. The test sets include IndMya and vid4 (city, walk, foliage, and calendar). After the download completes, unzip it. Your should see the path of data is ``video-super-resolution/data/train/``. 
 ## Process data
@@ -76,6 +80,9 @@ see our report [VDCN](https://drive.google.com/open?id=1A6mHsTWZZhWai8evuEjS-HEG
 - ``solver.py``: encapsulate all the logics to train the network
 - ``pytorch_ssim.py``: pytorch implementation for SSIM loss (with autograd), clone from this [repo](https://github.com/Po-Hsun-Su/pytorch-ssim)
 - ``loss.py``: loss function for models
+
+## TODO
+Upload pretrained models
 
 ## Building your own model
 To create your new model you need to define a new network architecture and new dataset class. See ``model.py`` and ``SR_datset.py`` for the idea :D. 
