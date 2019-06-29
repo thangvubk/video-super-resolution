@@ -33,6 +33,11 @@ $ generate_test_video
 ```
 > NOTE: If you want to run train and test the network with different dataset and frame up-scale factor, you should modify the dataset, and scale variable in the ``generate_test_video`` and ``generate_train_video`` scripts (see the scripts for instructions).
 
+
+## Pretrain model
+| Method | Scale | Download |
+|:------:|:-----:|----------|
+|  VRES  |   3   | [model](https://drive.google.com/file/d/1unaOdmkw9vM8hHptExqxMflOggJ9M67R/view?usp=sharing) |
 ## Execute the code
 To train the network:
 ```python train.py --verbose```
